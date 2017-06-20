@@ -1,0 +1,29 @@
+<launch>
+
+  
+  <arg default="false" name="paused" />
+  <arg default="true" name="use_sim_time" />
+  <arg default="true" name="gui" />
+  <arg default="false" name="headless" />
+  <arg default="false" name="debug" />
+  <arg default="$(find urdf_tutorial)/urdf/r2d2.xacro" name="model" />
+
+  
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="debug" value="$(arg debug)" />
+    <arg name="gui" value="$(arg gui)" />
+    <arg name="paused" value="$(arg paused)" />
+    <arg name="use_sim_time" value="$(arg use_sim_time)" />
+    <arg name="headless" value="$(arg headless)" />
+  </include>
+
+  <param command="$(find xacro)/xacro.py $(arg model)" name="robot_description" />
+
+  
+  <node args="-z 1.0 -unpause -urdf -model robot -param robot_description" name="urdf_spawner" output="screen" pkg="gazebo_ros" respawn="false" type="spawn_model" />
+
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher">
+    <param name="publish_frequency" type="double" value="30.0" />
+  </node>
+
+</launch>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>NodeWidget</class>
+ <widget class="QWidget" name="PropertWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>764</width>
+    <height>57</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>150</width>
+    <height>30</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>ROS Launchfile Editor GUI</string>
+  </property>
+  <layout class="QVBoxLayout" name="_vlayout">
+     <item>
+      <widget class="QLabel" name="_label_name">
+       <property name="toolTip">
+        <string>Node name</string>
+       </property>
+       <property name="text">
+        <string>&amp;Status</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="_lineEdit_arg">
+       <property name="text">
+        <string>&amp;Status</string>
+       </property>
+      </widget>
+     </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
