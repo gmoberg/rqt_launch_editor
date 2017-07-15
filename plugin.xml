@@ -1,0 +1,20 @@
+<library path="src">
+  <class name="Launch Editor" type="rqt_launch_editor.launchtree_plugin.LaunchtreePlugin" base_class_type="rqt_gui_py::Plugin">
+    <description>
+      RQT plugin for editing launch files via GUI
+    </description>
+    <qtgui>
+      <!-- optional grouping...
+      <group>
+        <label>Group</label>
+      </group>
+      <group>
+        <label>Subgroup</label>
+      </group>
+      -->
+      <label>Launch Editor</label>
+      <icon type="theme">system-help</icon>
+      <statustip>Edit launch files graphically</statustip>
+    </qtgui>
+  </class>
+</library>
