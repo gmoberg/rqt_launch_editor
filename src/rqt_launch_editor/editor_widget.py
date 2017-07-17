@@ -28,7 +28,7 @@ from config_wizard import ConfigWizard, ConfigPage
 
 #store pieces of content in property pane, probably label & value
 class PropertyWidget(QWidget):
-	def __init__(self, name, value, update_path):
+	def __init__(self, name, value, update_path, obj, isXml):
 		super(PropertyWidget, self).__init__()
 
 		self.setObjectName('PropertyWidget')
@@ -36,7 +36,9 @@ class PropertyWidget(QWidget):
 		self.name = name
 		self.value = value
 		self.update_path = update_path
-
+		self.obj = obj
+		self.isXml = isXml
+	
 		# ui file load
 		self._rp = rospkg.RosPack()
 		self._rp_package_list = self._rp.list()
@@ -48,10 +50,15 @@ class PropertyWidget(QWidget):
 		self._lineEdit_arg.setText(value)
 
 	def update(self):
-		self.update_path(self._lineEdit_arg.text())
+		if self.isXml:
+			self.value = self._lineEdit_arg.text()
+			self.obj.attrib[self.name] = self.value
+		else:
+			self.value = self._lineEdit_arg.text()
+			self.update_path(self._lineEdit_arg.text())
 
 	def changed(self):
-		return self._lineEdit_arg.text() != self.value
+		return str(self._lineEdit_arg.text()) != str(self.value)
 
 class EditorWidget(LaunchtreeWidget):
 
@@ -83,7 +90,7 @@ class EditorWidget(LaunchtreeWidget):
 			self.editor_tree.apply_changes()
 
 
-	#helper function for PropertyWidget icon
+	#helper function for tree widget icon
 	def get_icon(self, prop_widg):
 		elt = prop_widg.instance.obj
 
@@ -170,6 +177,8 @@ class EditorWidget(LaunchtreeWidget):
 						del_items.append(widg)
 						if widg.changed():
 							widg.update()
+							print widg.name + " was updated"
+							print "with val: " + widg.value
 			for widg in del_items:
 				layout.removeWidget(widg)
 				widg.setParent(None)
@@ -195,7 +204,7 @@ class EditorWidget(LaunchtreeWidget):
 		if isinstance(data, YamlStruct):
 			n = "Value: "
 			v = str(data.value)
-			prop_widg = PropertyWidget(n, v, lambda t: data.update(t))
+			prop_widg = PropertyWidget(n, v, lambda t: data.update(t), data, False)
 
 			self.gridLayout_2.addWidget(prop_widg)
 		elif type(data).__name__ == "Element":
@@ -203,8 +212,8 @@ class EditorWidget(LaunchtreeWidget):
 				n = str(key)
 				v = str(instance)
 				print "name:" + n + "val:" + v
-				prop_widg = PropertyWidget(n, v, lambda t: self.elt_func(data, n, t))
-				#prop_widg = PropertyWidget(n, v, lambda t: data.set(n, t))
+				#prop_widg = PropertyWidget(n, v, lambda t: data.attrib[n] = t)
+				prop_widg = PropertyWidget(n, v, lambda t: data.set(n, t), data, True)
 				self.gridLayout_2.addWidget(prop_widg)
 
 	#everything is being written pkg attrib for xml!!!

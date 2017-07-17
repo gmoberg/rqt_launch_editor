@@ -316,3 +316,4 @@ def resolve_arg(arg):
 
 def yaml_func(this_dict, key, x):
 	this_dict[key] = x
+
