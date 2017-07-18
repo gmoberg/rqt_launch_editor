@@ -26,7 +26,9 @@ from editor_tree import EditorTree, YamlStruct, EditorNode
 from wizards import YamlPage, XmlPage, AddWizard
 from config_wizard import ConfigWizard, ConfigPage
 
-#store pieces of content in property pane, probably label & value
+
+
+#widget that stores information about a specific XML or YAML tag
 class PropertyWidget(QWidget):
 	def __init__(self, name, value, update_path, obj, isXml):
 		super(PropertyWidget, self).__init__()
@@ -46,9 +48,11 @@ class PropertyWidget(QWidget):
 		ui_file = os.path.join(res_folder, 'editor_item_widget.ui')
 		loadUi(ui_file, self) 
 
+		#make widget
 		self._label_name.setText(name)
 		self._lineEdit_arg.setText(value)
 
+	#change value in underlying native data structure
 	def update(self):
 		if self.isXml:
 			self.value = self._lineEdit_arg.text()
@@ -60,22 +64,23 @@ class PropertyWidget(QWidget):
 	def changed(self):
 		return str(self._lineEdit_arg.text()) != str(self.value)
 
+
+#widget that creates overlying UI of application
+#extends the UI and some visual elements from LaunchtreeWidget
 class EditorWidget(LaunchtreeWidget):
 
 	def __init__(self, context):
 		super(EditorWidget, self).__init__(context)
 		
-		"""res_folder = os.path.join(self._rp.get_path('rqt_launch_editor'), 'resource')
-		ui_file = os.path.join(res_folder, 'editor_widget.ui')
-		loadUi(ui_file, self)"""
-		
 		self.setObjectName('EditorWidget')
 		self.curr_entry = None
 		
+		#set signals
 		self.apply.clicked.connect(self.apply_changes)
 		self._add_button.clicked.connect(self.add_dialog)
 		self._del_button.clicked.connect(self.delete_item)
 
+	#write changes to file
 	def apply_changes(self):
 		if hasattr(self, 'editor_tree'):
 			layout = self.gridLayout_2
@@ -117,7 +122,7 @@ class EditorWidget(LaunchtreeWidget):
 		else:
 			return self._icon_default
 
-	#should instance be the EditorNode or the object?
+	#generate tree widget
 	def display_config_tree(self, xml_tree):
 		filename = os.path.join(
 			self._rp.get_path(self.package_select.currentText()),
@@ -127,28 +132,14 @@ class EditorWidget(LaunchtreeWidget):
 		self.editor_tree = EditorTree(filename)
 		
 		def _display_config_tree(root):
+			#create widget
 			i = LaunchtreeEntryItem()
 			i.setText(0, root.name)
 			i.instance = root
-
-			#icon setting
 			i.setIcon(0, self.get_icon(i))
-			"""if type(i.instance.obj).__name__ == 'Element':
-				i.setIcon(0,
-					self._icon_node if i.instance.obj.tag == 'node' else
-					self._icon_param if i.instance.obj.tag == 'param' else
-					self._icon_rosparam if i.instance.obj.tag == 'rosparam' else
-					self._icon_arg if i.instance.obj.tag == 'arg' else
-					self._icon_remap if i.instance.obj.tag == 'remamp' else
-					self._icon_default)
-			elif isinstance(i.instance.obj, YamlStruct):
-				i.setIcon(0, self._icon_param)
-			elif isinstance(i.instance.obj, dict):
-				i.setIcon(0, self._icon_rosparam)
-			else:
-				i.setIcon(0, self._icon_default)"""
+			
 
-			# recursivelt add children to tree
+			# recursively add children to tree
 			for child in root.children:
 				i.insertChild(0, _display_config_tree(child))			
 			return i
@@ -156,14 +147,15 @@ class EditorWidget(LaunchtreeWidget):
 		return [_display_config_tree(self.editor_tree.getroot())]
 
 	
-	#deleting layout items may affect range function
-	#maybe an if statement to create a list of property widgets 
+	#extending QTreeWidget method
+	#executed when a new tree item is selected
 	def launch_entry_changed(self, current, previous):
 		if current is None:
 			return
 		
 		self.curr_entry = current
 
+		# log changes to data structure if applicable
 		if previous is not None:
 
 			prev_data = previous.instance.obj
@@ -177,8 +169,6 @@ class EditorWidget(LaunchtreeWidget):
 						del_items.append(widg)
 						if widg.changed():
 							widg.update()
-							print widg.name + " was updated"
-							print "with val: " + widg.value
 			for widg in del_items:
 				layout.removeWidget(widg)
 				widg.setParent(None)
@@ -186,63 +176,42 @@ class EditorWidget(LaunchtreeWidget):
 				widg.hide()
 				del widg
 
-			
-			"""for i in items:
-					if i.changed():
-						i.update()
-			if isinstance(prev_data, YamlStruct):
-	
-				#check  existing widget
-				print prev_data
-			elif type(prev_data).__name__ == "Element":
-				#iterate through existing widgets
-				for key, instance in prev_data.attrib.items():
-					x = 5"""
-
 		data = current.instance.obj
 
+		#generate new property widgets for selected element
 		if isinstance(data, YamlStruct):
+
 			n = "Value: "
 			v = str(data.value)
 			prop_widg = PropertyWidget(n, v, lambda t: data.update(t), data, False)
+			self.gridLayout_2.addWidget(prop_widg)\
 
-			self.gridLayout_2.addWidget(prop_widg)
 		elif type(data).__name__ == "Element":
+
 			for key, instance in data.attrib.items():
 				n = str(key)
 				v = str(instance)
-				print "name:" + n + "val:" + v
-				#prop_widg = PropertyWidget(n, v, lambda t: data.attrib[n] = t)
 				prop_widg = PropertyWidget(n, v, lambda t: data.set(n, t), data, True)
 				self.gridLayout_2.addWidget(prop_widg)
 
-	#everything is being written pkg attrib for xml!!!
 
-	def elt_func(self, elt, key, val):
-		print "this key  " + key
-		elt.attrib[key] = val
-
-	#adding child to current selected item
-	#do this for the treeWidget and the editor tree
-	#use QWizard for xml elts
-	#maybe the mk methods should return full wizards
-	#insertChild for widget side update, only when complete
+	# generate interface to add a new element
 	def add_dialog(self):
 
 		#can be None
-		if self.curr_entry is not None:
+		if self.curr_entry is not None and not isinstance(self.curr_entry.instance.obj, YamlStruct):
 			self.wizard = AddWizard(self.curr_entry)
 		else:
 			return
 
 		#gather data on submit 
-
 		self.verticalLayout_11.addWidget(self.wizard)
 		self.wizard.setWindowTitle("Add New Entry")
 		self.wizard.setModal(True)
 		self.wizard.show()
 		self.wizard.accepted.connect(self.add_action)
 
+	# called when add_wizard is submitted, changes data structures
 	def add_action(self):
 		self.editor_tree.add_to_tree(self.wizard.node, self.curr_entry.instance)
 		i = LaunchtreeEntryItem()
@@ -251,8 +220,7 @@ class EditorWidget(LaunchtreeWidget):
 		i.setIcon(0, self.get_icon(i))
 		self.curr_entry.insertChild(0, i)
 
-
-	#edit so that node is now the .instance
+	#delete selected XML or YAML item from widget
 	def delete_item(self):
 		curr = self.curr_entry
 		parent = curr.parent()
@@ -261,9 +229,10 @@ class EditorWidget(LaunchtreeWidget):
 			self.editor_tree.delete_item(curr.instance, parent.instance)
 		else:
 			self.editor_tree.delete_item(curr.instance, None)
-	#	curr.hide()
 		del curr
+		return
 
+	#configue files to writes changes to
 	def configure(self):
 		if not hasattr(self, 'editor_tree'):
 			return
@@ -273,14 +242,3 @@ class EditorWidget(LaunchtreeWidget):
 		self.config_wizard.setWindowTitle("Configure File Setup")
 		self.config_wizard.setModal(True)
 		self.config_wizard.show()
-
-		#self.config_wizard.accepted.connect(self.config_wizard.)
-
-
-
-
-
-
-
-
-		

@@ -8,11 +8,9 @@ from xml.etree.ElementTree import Element
 from editor_tree import YamlStruct, EditorNode
 
 
-#need to reconfigure include and rosparam file_name
-
+#configure the file_map
 class ConfigPage(QWizardPage):
 
-	# pass in file map to object?
 	def __init__(self, file_map):
 		# file_map is dict that maps
 		#EditableFile to a data structure
@@ -28,6 +26,7 @@ class ConfigPage(QWizardPage):
 
 		self.tracker = {}
 
+		#create a page representing file maps
 		for mapper, struct in file_map.items():
 			self.count += 1
 			self.tracker[self.count] = mapper
@@ -40,7 +39,7 @@ class ConfigPage(QWizardPage):
 
 		self.setLayout(self.layout)
 
-	#test this
+	#change values of file_map when page is submitted
 	def validatePage(self):
 		for i in range(self.count):
 			j = str(self.wizard().field("field" + str(i + 1)))
@@ -52,19 +51,11 @@ class ConfigPage(QWizardPage):
 					self.tracker[i+1].path = j 
 				else:
 					print "-----No Such Path Exists-----"
-
 		return True
-		# proper string conversion for original and new
-		# check datatype of mapper.path
-		"""for i in range(self.count):
-			j = str(self.wizard.field("field" + str(i + 1)))
-			if j == tracker[i  + 1]""" 
-		#separate dict to be able to iterate through?
-		#for i in range(self.count):
-			
 
 
 
+#wizard containing a ConfigPage
 class ConfigWizard(QWizard):
 
 	def __init__(self, file_map):

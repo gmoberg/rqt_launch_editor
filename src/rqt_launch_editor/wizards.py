@@ -6,10 +6,18 @@ import xml.etree.ElementTree as ElementTree
 from xml.etree.ElementTree import Element
 from editor_tree import YamlStruct, EditorNode
 
-#parent is node
+
+#module level list of tag strings
+tags = ["launch", "node", "machine", "include", 
+		"remap", "env", "param", "rosparam",
+		"group", "test", "arg"]
+
+
+#wizard page used to make a new YAML element
 class YamlPage(QWizardPage):
 
 	def __init__(self, parent):
+		#build page  widget
 		super(YamlPage, self).__init__()
 		self.parent = parent
 		self.setTitle("Add Entry")
@@ -43,16 +51,16 @@ class YamlPage(QWizardPage):
 		self.wizard().node = node
 		return node
 
+	#creates new node when page is submitted
 	def validatePage(self):
 		self.get_node()
 		return True
 
-tags = ["launch", "node", "machine", "include", 
-		"remap", "env", "param", "rosparam",
-		"group", "test", "arg"]
-
+#wizard page used to make an new XML element
 class XmlPage(QWizardPage):
 	def __init__(self):
+		#build page widget
+
 		super(XmlPage, self).__init__()
 		self.setTitle("Add Entry")
 		self.setSubTitle("Create a new launch XML tag:")
@@ -79,6 +87,7 @@ class XmlPage(QWizardPage):
 
 		self.button.clicked.connect(self.add_entry)
 
+	#add more text fields to widget
 	def add_entry(self):
 		self.count += 1
 		key_label = QLabel("Key " + str(self.count) + ":")
@@ -97,6 +106,7 @@ class XmlPage(QWizardPage):
 		
 		return
 
+	#return XML tag
 	def get_tag(self):
 		idx = self.field('tag')
 		tag = str(tags[idx])
@@ -114,6 +124,7 @@ class XmlPage(QWizardPage):
 			attrib[key] = val
 		return attrib
 
+	# make an instance of an XML element
 	def get_node(self):
 		tag = self.get_tag()
 		attrib = self.get_attrib()
@@ -141,14 +152,12 @@ class XmlPage(QWizardPage):
 		self.wizard().node = node
 		return node
 
-
+	#create the new node from GUI
 	def validatePage(self):
 		self.get_node()
-		print "validate"
-		print self.wizard().node
 		return True
 
-
+# wizard generated to add an element to tree
 class AddWizard(QWizard):
 
 	def __init__(self, entry):
@@ -158,10 +167,6 @@ class AddWizard(QWizard):
 		parent_obj = entry.instance.obj
 
 		if isinstance(parent_obj, Element):
-			"""tag_page = XmlTagPage()
-			attrib_page = XmlAttribPage()
-			self.addPage(tag_page)
-			self.addPage(attrib_page)"""
 			xml_page = XmlPage()
 			self.addPage(xml_page)
 		elif isinstance(parent_obj, dict):

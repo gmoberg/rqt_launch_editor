@@ -4,12 +4,27 @@ import os
 import yaml
 import io
 import roslaunch
+from ast import literal_eval
 
-#need to be able to easily match 
+"""
+How the editor works:
+	1. Use XML and YAML libraries to parse files
+	   into trees and dicts.
+	2. EditorTree makes a connected datatype that is 
+	   edited by widget events (underlying dicts and
+	   XML trees are edited in the process)
+	3. When changes are applied, changes in XML trees
+	   and YAML dicts are written to the appropriate 
+	   files (user can change these files with configuration)
+"""
+
+
+#data class used to make a dictionary of files and datastructures
 class EditableFile:
 	def __init__(self, path, is_yaml):
 		self.path = path
 		self.is_yaml = is_yaml
+
 
 #Nodes used to build tree, not to be confused with ROS datatype
 class EditorNode:
@@ -28,6 +43,8 @@ class EditorNode:
 	def del_child(self, elt):
 		self.children.remove(elt)
 
+
+#underlying datastructure of tree widget
 class EditorTree:
 
 	def __init__(self, launch_file):
@@ -42,10 +59,9 @@ class EditorTree:
 		#initialize tree structure
 		self.struct = self.create()
 
-	#keep track of edits in list
-	#tree of lists - possibly too long to make
+	#create an Editor tree from an XML file
 	def create(self):
-		#rosparam and include need special treatment, should I skip launch
+		
 		def _create(xml_root, first_time):
 
 			name = ""
@@ -66,6 +82,7 @@ class EditorTree:
 
 			node = EditorNode(name, xml_root)
 
+			#rosparam and include need special treatment
 			if root_tag == "rosparam":
 				yaml_as_string = ""
 				is_file = False
@@ -93,6 +110,7 @@ class EditorTree:
 					f = EditableFile(subst_val, False)
 					self.file_map[f] = tree2
 
+			#recursively add child nodes
 			for child in xml_root:
 				node.add_child(_create(child, False))
 
@@ -101,14 +119,14 @@ class EditorTree:
 
 			return node
 
-		return _create(self.xroot, True) #probably needs recursive definition
+		return _create(self.xroot, True) 
 
+	#returns the root of the tree
 	def getroot(self):
 		return self.root
 
-	# add and delete need to modify underlying dicts, trees, or structs
-	#also needs to be in gui
-	#need to call a reset button
+	#add an element to the tree as a child
+	#of a already existing parent element
 	def add_to_tree(self, elt, parent):
 		if isinstance(parent.obj, YamlStruct):
 			print "----Invalid Change----"
@@ -121,25 +139,30 @@ class EditorTree:
 				return
 		elif isinstance(parent.obj, dict):
 			if isinstance(elt.obj, dict):
+				print "----Invalid Change----"
 				return
 			elif isinstance(elt.obj, YamlStruct):
 				parent.obj[elt.obj.key] = elt.obj.value
 			else:
+				print "----Invalid Change----"
 				return
 		else:
 			print "----Invalid Change----"
 			return
+			
 		parent.add_child(elt)
 
-	#need to use a reset button
-	# have to edit parent_node binding
+	#delete currently selcted item
 	def delete_item(self, node, parent_node):
-		#test
+		#deleting top level launch tag deletes whole file
 		if parent_node is None:
 			if type(node.obj).__name__ == "Element":
-				del node.obj
-				del node.children
-				del node
+				if node.obj.tag == "launch":
+					print "-----Top level launch tag cannot be deleted-----"
+				else:
+					del node.obj
+					del node.children
+					del node
 			return
 
 		if isinstance(node.obj, YamlStruct):
@@ -147,22 +170,23 @@ class EditorTree:
 			node_key = node.obj.key
 			parent_dict = parent_node.obj
 			del node.obj.parent[node.obj.key]
-			#del parent_dict[node_key]
-
-			#this case of dict with dict child
+			
 		elif isinstance(node.obj, dict):
 			if isinstance(parent_node.obj, dict):
-				#this is probably unsafe 
+
 				for key, instance in parent_node.obj.items():
 					if instance is node.obj:
 						del parent_node.obj[key]
 						break
+
 			elif type(parent_node.obj).__name__ == "Element":
+
 				if parent_node.obj.tag == "rosparam":
 					if parent_node.obj.attrib.has_key("file"):
 						del parent_node.obj.attrib["file"]
 					else:
 						parent_node.obj.text = ""
+
 			parent_node.del_child(node)
 			del node.obj
 		elif type(node.obj).__name__ == 'Element':
@@ -171,31 +195,28 @@ class EditorTree:
 		else:
 			return
 		del node
-		#this works only if an xml elt root.obj is passed
-		#xml_root.remove() #deletes allchildren
+
 
 
 	# changes written out to file
 	def apply_changes(self):
-		#make edits to text embedded yaml first
+
+		#make edits to text embedded yaml first(e.g rosparam.text attribute)
 		for key, struct in self.file_map.items():
 			if key.is_yaml:
 				if isinstance(key.path, Element):
-					print "this time"
-					print struct
 					key.path.text = yaml.dump(struct, default_flow_style=False)
-					print key.path.text
 				else:
 					continue
 			else:
 				continue
 
+		#use file map to write changes to files
 		for key, struct in self.file_map.items():
 			if key.is_yaml:
 				if isinstance(key.path, Element):
 					continue
 				else:
-					print "normal"
 					try:
 						stream = file(key.path, "w")
 						yaml.dump(struct, stream, default_flow_style=False)
@@ -209,14 +230,8 @@ class EditorTree:
 					stream.close()
 				except IOError as e:
 					print "-------" + str(key.path) + " was not edited-------"
-		#maps the file and whether it's yaml to the overlying data structure
 
-	#ability to edit file map when/ before applying changes - handle with widget class
-
-	#not currently a priority to figure out when to do this
-
-	#yaml dicts or mapping to be equivalent to xml elt?
-
+	#integrate yaml text as part of the editor tree
 	def process_yaml(self, yaml_text, is_file, ptr_node = None):
 		yaml_dict = {}
 		currname = ""
@@ -233,7 +248,6 @@ class EditorTree:
 
 		#ptr_node only used for yaml embedded in an xml file
 		if ptr_node is not None:
-			print "worked!"
 			mapper = EditableFile(ptr_node, True)
 			self.file_map[mapper] = yaml_dict
 		else:
@@ -241,10 +255,14 @@ class EditorTree:
 			self.file_map[mapper] = yaml_dict
 
 		fst_node = EditorNode("Yaml Top Level", yaml_dict)
-		# create new object to deal with yaml (possibly including update lambda function)
+
+		# create new object to deal with yaml
 		def _process_yaml_dict(this_dict, curr):
 			node_list = []
 			for key, instance in this_dict.items():
+
+				#recursive call to _process_yaml_dict
+				#have to add children and increment name
 
 				name = curr + "/" + key
 				if isinstance(instance, dict):
@@ -256,18 +274,14 @@ class EditorTree:
 					node = EditorNode(name, struct)
 
 				node_list.append(node)	
-				#recursive call to _process_yaml_dict
-				#have to add children and increment name, possibly paths
+
 			return node_list
 
 		fst_node.add_children(_process_yaml_dict(yaml_dict, currname))
 		return [fst_node]
-		#return _process_yaml_dict(yaml_dict, currname)
-		#pass #returns EditorNode list
-	#need to have a try and catch block at some point - probably in widget class
+		
 
-#parsing different datatypes because all are being loaded as a python unicode string!!!!
-
+#object representing a key/value pairing in YAML
 class YamlStruct:
 	def __init__(self, key, value, parent):
 		self.key = key
@@ -276,8 +290,7 @@ class YamlStruct:
 		self.parent = parent
 
 
-	#parsing for different data types
-	#or is better to write just a string?
+	# update the value of a YamlStruct
 	def update(self, x):
 
 		try:
@@ -293,10 +306,12 @@ class YamlStruct:
 			elif self.data_type == 'str':
 				self.value = str(x)
 				self.parent[self.key] = str(x)
-			#not correct results, instead parse to string?
+
+			#lists were not being parsed correctly by QT
 			elif self.data_type == 'list':
-				self.value = str(x)
-				self.parent[self.key] = str(x)
+				val = literal_eval(x)
+				self.value = val
+				self.parent[self.key] = val
 			else:
 				self.value = x
 				self.parent[self.key] =  x
@@ -305,7 +320,7 @@ class YamlStruct:
 			self.parent[self.key] =  x
 
 	
-
+#resolve substitution args of an element
 def resolve_arg(arg):
 	subst_val = ""
 	try:
@@ -313,7 +328,4 @@ def resolve_arg(arg):
 	except roslaunch.substitution_args.ArgException:
 		subst_val = arg
 	return subst_val
-
-def yaml_func(this_dict, key, x):
-	this_dict[key] = x
 
