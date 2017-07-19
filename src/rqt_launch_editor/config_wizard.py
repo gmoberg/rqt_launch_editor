@@ -30,7 +30,7 @@ class ConfigPage(QWizardPage):
 		for mapper, struct in file_map.items():
 			self.count += 1
 			self.tracker[self.count] = mapper
-			old_path = mapper.path
+			old_path = str(mapper.path)
 			label = QLabel(old_path)
 			edit = QLineEdit(old_path)
 			self.registerField("field" + str(self.count), edit)

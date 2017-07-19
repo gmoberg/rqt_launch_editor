@@ -158,7 +158,7 @@ class EditorTree:
 		if parent_node is None:
 			if type(node.obj).__name__ == "Element":
 				if node.obj.tag == "launch":
-					print "-----Top level launch tag cannot be deleted-----"
+					print "-----Launch tag cannot be deleted-----"
 				else:
 					del node.obj
 					del node.children
@@ -187,11 +187,16 @@ class EditorTree:
 					else:
 						parent_node.obj.text = ""
 
+
 			parent_node.del_child(node)
 			del node.obj
 		elif type(node.obj).__name__ == 'Element':
-			parent_node.del_child(node)
-			parent_node.obj.remove(node.obj)
+			if node.obj.tag == "launch":
+				print "-----Launch tag cannot be deleted-----"
+				return
+			else:
+				parent_node.del_child(node)
+				parent_node.obj.remove(node.obj)
 		else:
 			return
 		del node
@@ -239,7 +244,6 @@ class EditorTree:
 			with open(yaml_text, 'r') as stream:
 				try:
 					yaml_dict = yaml.load(stream)
-					#currname = yaml_text
 				except yaml.YAMLError as e:
 					yaml_dict = {}
 		else:

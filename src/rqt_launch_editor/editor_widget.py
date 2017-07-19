@@ -146,7 +146,38 @@ class EditorWidget(LaunchtreeWidget):
 
 		return [_display_config_tree(self.editor_tree.getroot())]
 
-	
+
+	#extend launchtree method to clear property pane	
+	def load_launchfile(self):
+		super(EditorWidget, self).load_launchfile()
+		self.clear_prop_pane()
+		return
+
+	#delete all PropertyWidgets in property pane
+	def clear_prop_pane(self):
+		if not hasattr(self, 'curr_entry'):
+			return
+		if self.curr_entry is not None:
+			del_items = []
+			layout = self.gridLayout_2
+
+			for i in range(layout.count()):
+				item = layout.itemAt(i)
+				if isinstance(item, QWidgetItem):
+					widg = item.widget()
+					if isinstance(widg, PropertyWidget):
+						del_items.append(widg)
+						if widg.changed():
+							widg.update()
+			for widg in del_items:
+				layout.removeWidget(widg)
+				widg.setParent(None)
+				widg.deleteLater()
+				widg.hide()
+				del widg
+
+
+
 	#extending QTreeWidget method
 	#executed when a new tree item is selected
 	def launch_entry_changed(self, current, previous):
@@ -184,7 +215,7 @@ class EditorWidget(LaunchtreeWidget):
 			n = "Value: "
 			v = str(data.value)
 			prop_widg = PropertyWidget(n, v, lambda t: data.update(t), data, False)
-			self.gridLayout_2.addWidget(prop_widg)\
+			self.gridLayout_2.addWidget(prop_widg)
 
 		elif type(data).__name__ == "Element":
 
@@ -224,6 +255,13 @@ class EditorWidget(LaunchtreeWidget):
 	def delete_item(self):
 		curr = self.curr_entry
 		parent = curr.parent()
+
+		#deleting launch tag creates invalid launch XML
+		if hasattr(curr.instance.obj, "tag"):
+			if curr.instance.obj.tag == "launch":
+				print "-----Launch tag cannot be deleted-----"
+				return
+
 		if parent is not None:
 			parent.removeChild(curr)
 			self.editor_tree.delete_item(curr.instance, parent.instance)
