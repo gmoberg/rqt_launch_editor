@@ -5,6 +5,7 @@ import yaml
 import io
 import roslaunch
 from ast import literal_eval
+from line_parser import LineParser
 
 """
 How the editor works:
@@ -49,7 +50,7 @@ class EditorTree:
 
 	def __init__(self, launch_file):
 		self.launch_file = launch_file
-		self.xtree = ET.parse(launch_file)
+		self.xtree = ET.parse(launch_file, parser=LineParser())
 		self.xroot = self.xtree.getroot()
 
 		self.editable_root = EditableFile(self.launch_file, False)
@@ -104,7 +105,7 @@ class EditorTree:
 				path = xml_root.get("file")
 				subst_val = resolve_arg(path)
 				if os.path.isfile(subst_val):
-					tree2 = ET.parse(subst_val)
+					tree2 = ET.parse(subst_val, parser=LineParser())
 					root2 = tree2.getroot()
 					node.add_child(_create(root2, False))
 					f = EditableFile(subst_val, False)

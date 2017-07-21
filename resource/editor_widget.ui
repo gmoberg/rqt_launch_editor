@@ -294,7 +294,7 @@
               <string>Apply Edits</string>
             </property>
           </widget>-->
-        <layout class="QGridLayout" name="apply_layout">
+      <!--  <layout class="QGridLayout" name="apply_layout"> -->
          <!-- <item>
             <spacer name="apply_spacer1">
               <property name="orientation">
@@ -332,7 +332,7 @@
               </property>
             </spacer>
           </item>-->
-        </layout>
+       <!-- </layout>-->
         <!-- </layout> -->
         </widget>
        </widget>

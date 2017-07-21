@@ -15,8 +15,8 @@ from launchtree_widget import LaunchtreeEntryItem, LaunchtreeWidget
 
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt, Signal
-from python_qt_binding.QtWidgets import QFileDialog, QWidget, QTreeWidgetItem, QLabel, QLineEdit, QWidgetItem
-from python_qt_binding.QtWidgets import QInputDialog, QWizard, QWizardPage, QGridLayout, QComboBox
+from python_qt_binding.QtWidgets import QFileDialog, QWidget, QTreeWidgetItem, QLabel, QLineEdit, QWidgetItem, QFileDialog
+from python_qt_binding.QtWidgets import QInputDialog, QWizard, QWizardPage, QGridLayout, QComboBox, QSizePolicy
 from python_qt_binding.QtGui import QIcon, QColor
 
 import xml.etree.ElementTree as ET
@@ -52,6 +52,7 @@ class PropertyWidget(QWidget):
 		self._label_name.setText(name)
 		self._lineEdit_arg.setText(value)
 
+
 	#change value in underlying native data structure
 	def update(self):
 		if self.isXml:
@@ -75,6 +76,8 @@ class EditorWidget(LaunchtreeWidget):
 		self.setObjectName('EditorWidget')
 		self.curr_entry = None
 		
+		self.gridLayout_2.setAlignment(Qt.AlignTop)
+
 		#set signals
 		self.apply.clicked.connect(self.apply_changes)
 		self._add_button.clicked.connect(self.add_dialog)
@@ -93,6 +96,8 @@ class EditorWidget(LaunchtreeWidget):
 							widg.update()
 
 			self.editor_tree.apply_changes()
+
+
 
 
 	#helper function for tree widget icon
@@ -130,12 +135,19 @@ class EditorWidget(LaunchtreeWidget):
 		)
 		
 		self.editor_tree = EditorTree(filename)
+
+
 		
 		def _display_config_tree(root):
 			#create widget
 			i = LaunchtreeEntryItem()
-			i.setText(0, root.name)
 			i.instance = root
+			
+			if type(i.instance.obj).__name__ == 'Element':
+				i.setText(0, root.name + '  (' + str(i.instance.obj.line_num) + ')') 
+			else:
+				i.setText(0, root.name)
+			
 			i.setIcon(0, self.get_icon(i))
 			
 
@@ -210,11 +222,15 @@ class EditorWidget(LaunchtreeWidget):
 		data = current.instance.obj
 
 		#generate new property widgets for selected element
+
+		size_pol = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+
 		if isinstance(data, YamlStruct):
 
 			n = "Value: "
 			v = str(data.value)
 			prop_widg = PropertyWidget(n, v, lambda t: data.update(t), data, False)
+			prop_widg.setSizePolicy(size_pol)
 			self.gridLayout_2.addWidget(prop_widg)
 
 		elif type(data).__name__ == "Element":
@@ -223,6 +239,7 @@ class EditorWidget(LaunchtreeWidget):
 				n = str(key)
 				v = str(instance)
 				prop_widg = PropertyWidget(n, v, lambda t: data.set(n, t), data, True)
+				prop_widg.setSizePolicy(size_pol)
 				self.gridLayout_2.addWidget(prop_widg)
 
 
@@ -280,3 +297,5 @@ class EditorWidget(LaunchtreeWidget):
 		self.config_wizard.setWindowTitle("Configure File Setup")
 		self.config_wizard.setModal(True)
 		self.config_wizard.show()
+		
+		#filename = QFileDialog.getSaveFileName(self)
