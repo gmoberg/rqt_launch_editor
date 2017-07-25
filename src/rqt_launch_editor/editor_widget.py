@@ -83,6 +83,7 @@ class EditorWidget(LaunchtreeWidget):
 		self._add_button.clicked.connect(self.add_dialog)
 		self._del_button.clicked.connect(self.delete_item)
 
+
 	#write changes to file
 	def apply_changes(self):
 		if hasattr(self, 'editor_tree'):
@@ -135,9 +136,8 @@ class EditorWidget(LaunchtreeWidget):
 		)
 		
 		self.editor_tree = EditorTree(filename)
-
-
 		
+
 		def _display_config_tree(root):
 			#create widget
 			i = LaunchtreeEntryItem()
@@ -153,8 +153,14 @@ class EditorWidget(LaunchtreeWidget):
 
 			# recursively add children to tree
 			for child in root.children:
-				i.insertChild(0, _display_config_tree(child))			
+				i.addChild(_display_config_tree(child))			
 			return i
+
+
+		x = _display_config_tree(self.editor_tree.getroot())
+
+		for y in range(x.childCount()):
+			print x.child(y).instance.name
 
 		return [_display_config_tree(self.editor_tree.getroot())]
 
@@ -266,7 +272,8 @@ class EditorWidget(LaunchtreeWidget):
 		i.instance = self.wizard.node
 		i.setText(0, self.wizard.node.name)
 		i.setIcon(0, self.get_icon(i))
-		self.curr_entry.insertChild(0, i)
+		#self.curr_entry.insertChild(0, i)
+		self.curr_entry.addChild(i)
 
 	#delete selected XML or YAML item from widget
 	def delete_item(self):

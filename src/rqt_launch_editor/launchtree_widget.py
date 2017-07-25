@@ -177,7 +177,7 @@ class LaunchtreeWidget(QWidget):
 	def _update_launch_view(self, items):
 		self.launch_view.clear()
 		self.launch_view.addTopLevelItems(items)
-		self.launch_view.sortItems(0, Qt.AscendingOrder)
+		#self.launch_view.sortItems(0, Qt.AscendingOrder)
 		#self._filter_launch_view()
 		self.progress_bar.setRange(0,1)
 		self.progress_bar.setValue(1)
