@@ -110,10 +110,10 @@ class LaunchtreeWidget(QWidget):
 			self._rp.get_path(self.package_select.currentText()),
 			self.launchfile_select.currentText()
 		)
-		launchargs = roslaunch.substitution_args.resolve_args(self.args_input.text()).split(' ')
+		#launchargs = roslaunch.substitution_args.resolve_args(self.args_input.text()).split(' ')
 		if os.path.isfile(filename):
 			self.progress_bar.setRange(0,0)
-			self._load_thread = threading.Thread(target=self._load_launch_items, args=[filename, launchargs])
+			self._load_thread = threading.Thread(target=self._load_launch_items, args=[filename, []])
 			self._load_thread.daemon = True
 			self._load_thread.start()
 
@@ -133,8 +133,8 @@ class LaunchtreeWidget(QWidget):
 				str(e)
 			)
 			help_msg = ''
-			if 'arg to be set' in str(e):
-				help_msg = 'You can pass args to the root launch file by specifying them in the "args" input field, for example "arg_key:=arg_value".'
+			#if 'arg to be set' in str(e):
+			#	help_msg = 'You can pass args to the root launch file by specifying them in the "args" input field, for example "arg_key:=arg_value".'
 			self.display_load_error.emit(error_msg, help_msg)
 		
 

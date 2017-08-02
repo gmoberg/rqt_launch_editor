@@ -105,6 +105,8 @@ class EditorTree:
 				path = xml_root.get("file")
 				subst_val = resolve_arg(path)
 				if os.path.isfile(subst_val):
+					if self.in_map(subst_val):
+						print "xml repetition" + str(subst_val)
 					tree2 = ET.parse(subst_val, parser=LineParser())
 					root2 = tree2.getroot()
 					node.add_child(_create(root2, False))
@@ -256,6 +258,8 @@ class EditorTree:
 			mapper = EditableFile(ptr_node, True)
 			self.file_map[mapper] = yaml_dict
 		else:
+			if self.in_map(yaml_text):
+				print "yaml repetition"
 			mapper = EditableFile(yaml_text, True)
 			self.file_map[mapper] = yaml_dict
 
@@ -284,6 +288,13 @@ class EditorTree:
 
 		fst_node.add_children(_process_yaml_dict(yaml_dict, currname))
 		return [fst_node]
+
+	#checks whether a path is already in the file map
+	def in_map(self, path):
+		for key in self.file_map.keys():
+			if key.path == path:
+				return True
+		return False
 		
 
 #object representing a key/value pairing in YAML

@@ -82,6 +82,7 @@ class EditorWidget(LaunchtreeWidget):
 		self.apply.clicked.connect(self.apply_changes)
 		self._add_button.clicked.connect(self.add_dialog)
 		self._del_button.clicked.connect(self.delete_item)
+		self.save_as.clicked.connect(self.configure)
 
 
 	#write changes to file

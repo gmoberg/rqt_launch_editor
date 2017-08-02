@@ -402,7 +402,7 @@
        </widget>
       </item>
       
-      <item>
+      <!--<item>
        <widget class="QLineEdit" name="args_input">
         <property name="toolTip">
          <string>Pass args to the root launch file like 'arg_key:=arg_value'</string>
@@ -411,11 +411,18 @@
          <string>args</string>
         </property>
        </widget>
-      </item>
+      </item>-->
       <item>
          <widget class="QPushButton" name="apply">
           <property name="text">
             <string>Apply Edits</string>
+          </property>
+        </widget>
+      </item>
+      <item>
+        <widget class="QPushButton" name="save_as">
+          <property name="text">
+            <string>Save As</string>
           </property>
         </widget>
       </item>
