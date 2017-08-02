@@ -33,6 +33,8 @@ class ConfigPage(QWizardPage):
 			old_path = str(mapper.path)
 			label = QLabel(old_path)
 			edit = QLineEdit(old_path)
+			if not os.path.isfile(old_path):
+				continue
 			self.registerField("field" + str(self.count), edit)
 			self.layout.addWidget(label, self.count - 1, 0)
 			self.layout.addWidget(edit, self.count - 1, 1)
@@ -47,7 +49,6 @@ class ConfigPage(QWizardPage):
 				continue
 			else:
 				if os.path.isfile(j):
-				# correct assignment?
 					self.tracker[i+1].path = j 
 				else:
 					print "-----No Such Path Exists-----"

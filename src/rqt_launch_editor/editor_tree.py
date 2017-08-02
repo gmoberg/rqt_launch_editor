@@ -306,8 +306,17 @@ class YamlStruct:
 				self.value = float(x)
 				self.parent[self.key] = float(x)
 			elif self.data_type == 'bool':
-				self.value = bool(x)
-				self.parent[self.key] = bool(x)
+				"""self.value = bool(x)
+				self.parent[self.key] = bool(x)"""
+				if str(x) == 'true':
+					self.value = True
+					self.parent[self.key] = True
+				elif str(x) == 'false':
+					self.value = False
+					self.parent[self.key] = False
+				else:
+					self.value = bool(x)
+					self.parent[self.key] =  bool(x)
 			elif self.data_type == 'str':
 				self.value = str(x)
 				self.parent[self.key] = str(x)

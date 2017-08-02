@@ -157,11 +157,6 @@ class EditorWidget(LaunchtreeWidget):
 			return i
 
 
-		x = _display_config_tree(self.editor_tree.getroot())
-
-		for y in range(x.childCount()):
-			print x.child(y).instance.name
-
 		return [_display_config_tree(self.editor_tree.getroot())]
 
 
@@ -259,9 +254,8 @@ class EditorWidget(LaunchtreeWidget):
 			return
 
 		#gather data on submit 
-		self.verticalLayout_11.addWidget(self.wizard)
 		self.wizard.setWindowTitle("Add New Entry")
-		self.wizard.setModal(True)
+		self.wizard.setWindowModality(Qt.ApplicationModal)
 		self.wizard.show()
 		self.wizard.accepted.connect(self.add_action)
 
@@ -300,9 +294,10 @@ class EditorWidget(LaunchtreeWidget):
 			return
 		
 		self.config_wizard = ConfigWizard(self.editor_tree.file_map)
-		self.verticalLayout_11.addWidget(self.config_wizard)
+		#self.verticalLayout_11.addWidget(self.config_wizard)
 		self.config_wizard.setWindowTitle("Configure File Setup")
-		self.config_wizard.setModal(True)
+		self.config_wizard.setWindowModality(Qt.ApplicationModal)
+		self.config_wizard.resize(850, 100)
 		self.config_wizard.show()
 		
 		#filename = QFileDialog.getSaveFileName(self)

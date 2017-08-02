@@ -5,6 +5,7 @@ from python_qt_binding.QtWidgets import *
 import xml.etree.ElementTree as ElementTree
 from xml.etree.ElementTree import Element
 from editor_tree import YamlStruct, EditorNode
+from ast import literal_eval
 
 
 #module level list of tag strings
@@ -43,7 +44,18 @@ class YamlPage(QWizardPage):
 		return str(self.field("key"))
 
 	def get_val(self):
-		return str(self.field("val"))
+		s = str(self.field("val"))
+
+		if s == 'true':
+			return True
+		elif s == 'false':
+			return False 
+		else:
+			try:
+				x = literal_eval(s)
+			except:
+				x = str(s)
+			return x
 
 	def get_node(self):
 		obj = YamlStruct(self.get_key(), self.get_val(), self.parent.obj)
@@ -57,6 +69,9 @@ class YamlPage(QWizardPage):
 		return True
 
 #wizard page used to make an new XML element
+
+
+
 class XmlPage(QWizardPage):
 	def __init__(self):
 		#build page widget
@@ -72,6 +87,7 @@ class XmlPage(QWizardPage):
 		self.combo_label = QLabel("Choose Tag:")
 		self.combo = QComboBox()
 		self.combo.addItems(tags)
+		self.spacer = QLabel("")
 
 		self.count = 0
 
@@ -79,10 +95,24 @@ class XmlPage(QWizardPage):
 
 		self.registerField("tag", self.combo)
 
+		#self.combo_label.setMaximumWidth(self.combo_label.minimumWidth())
+		#self.combo.setMaximumWidth(self.combo.minimumWidth())
+		#self.button.setMaximumWidth(self.button.minimumWidth())
+		#self.spacer.setMaximumWidth(self.spacer.minimumWidth())
+		"""
+		self.combo_label.setMinimumWidth(100)
+		self.combo_label.setMaximumWidth(100)
+		self.combo.setMinimumWidth(100)
+		self.combo.setMaximumWidth(100)
+		self.button.setMinimumWidth(100)
+		self.button.setMaximumWidth(100)
+		"""
+
 		self.layout = QGridLayout()
 		self.layout.addWidget(self.combo_label, 0, 0)
 		self.layout.addWidget(self.combo, 0, 1)
 		self.layout.addWidget(self.button, 0, 2)
+		self.layout.addWidget(self.spacer, 0, 3)
 		self.setLayout(self.layout)
 
 		self.button.clicked.connect(self.add_entry)
