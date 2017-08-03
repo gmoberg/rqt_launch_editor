@@ -122,8 +122,8 @@ class LaunchtreeWidget(QWidget):
 		items = list()
 		try:
 			#delete next 2 lines and may be able to delete loader dependency?
-			loader = LaunchtreeLoader()
-			loader.load(filename, self._launch_config, verbose=False, argv=['','',''] + launchargs)
+			#loader = LaunchtreeLoader()
+			#loader.load(filename, self._launch_config, verbose=False, argv=['','',''] + launchargs)
 			items = self.display_config_tree(self._launch_config.tree)
 			self.update_launch_view.emit(items)
 

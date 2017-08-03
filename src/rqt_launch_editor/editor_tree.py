@@ -57,6 +57,8 @@ class EditorTree:
 		self.file_map = {self.editable_root: self.xtree}
 		self.edit_list = []
 
+		self.file_node_map = {}
+
 		#initialize tree structure
 		self.struct = self.create()
 
@@ -107,11 +109,17 @@ class EditorTree:
 				if os.path.isfile(subst_val):
 					if self.in_map(subst_val):
 						print "xml repetition" + str(subst_val)
-					tree2 = ET.parse(subst_val, parser=LineParser())
-					root2 = tree2.getroot()
-					node.add_child(_create(root2, False))
-					f = EditableFile(subst_val, False)
-					self.file_map[f] = tree2
+						node.add_child(self.file_node_map[subst_val])
+
+					else:
+						tree2 = ET.parse(subst_val, parser=LineParser())
+						root2 = tree2.getroot()
+						new_node = _create(root2, False)
+						node.add_child(new_node)
+						#node.add_child(_create(root2, False))
+						f = EditableFile(subst_val, False)
+						self.file_map[f] = tree2
+						self.file_node_map[subst_val] = new_node
 
 			#recursively add child nodes
 			for child in xml_root:
@@ -260,6 +268,7 @@ class EditorTree:
 		else:
 			if self.in_map(yaml_text):
 				print "yaml repetition"
+
 			mapper = EditableFile(yaml_text, True)
 			self.file_map[mapper] = yaml_dict
 
@@ -287,6 +296,8 @@ class EditorTree:
 			return node_list
 
 		fst_node.add_children(_process_yaml_dict(yaml_dict, currname))
+		if ptr_node is None:
+			self.file_node_map[yaml_text] = fst_node
 		return [fst_node]
 
 	#checks whether a path is already in the file map

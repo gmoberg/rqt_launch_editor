@@ -16,7 +16,7 @@ from launchtree_widget import LaunchtreeEntryItem, LaunchtreeWidget
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt, Signal
 from python_qt_binding.QtWidgets import QFileDialog, QWidget, QTreeWidgetItem, QLabel, QLineEdit, QWidgetItem, QFileDialog
-from python_qt_binding.QtWidgets import QInputDialog, QWizard, QWizardPage, QGridLayout, QComboBox, QSizePolicy
+from python_qt_binding.QtWidgets import QInputDialog, QWizard, QWizardPage, QGridLayout, QComboBox, QSizePolicy, QPushButton
 from python_qt_binding.QtGui import QIcon, QColor
 
 import xml.etree.ElementTree as ET
@@ -98,8 +98,6 @@ class EditorWidget(LaunchtreeWidget):
 							widg.update()
 
 			self.editor_tree.apply_changes()
-
-
 
 
 	#helper function for tree widget icon
