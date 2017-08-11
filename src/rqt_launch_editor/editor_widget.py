@@ -27,7 +27,6 @@ from wizards import YamlPage, XmlPage, AddWizard
 from config_wizard import ConfigWizard, ConfigPage
 
 
-
 #widget that stores information about a specific XML or YAML tag
 class PropertyWidget(QWidget):
 	def __init__(self, name, value, update_path, obj, isXml):
@@ -148,7 +147,7 @@ class EditorWidget(LaunchtreeWidget):
 				i.setText(0, root.name)
 			
 			i.setIcon(0, self.get_icon(i))
-			
+
 
 			# recursively add children to tree
 			for child in root.children:
@@ -264,14 +263,32 @@ class EditorWidget(LaunchtreeWidget):
 		i = LaunchtreeEntryItem()
 		i.instance = self.wizard.node
 		i.setText(0, self.wizard.node.name)
-		i.setIcon(0, self.get_icon(i))
+		icon = self.get_icon(i)
+		i.setIcon(0, icon)
 		#self.curr_entry.insertChild(0, i)
 		self.curr_entry.addChild(i)
+
+		#deal with possible repetition
+		matches = self.get_repeated(self.curr_entry)
+		if matches != []:
+			for parent in matches:
+				if parent is self.curr_entry:
+					continue
+				x = LaunchtreeEntryItem()
+				x.instance = self.wizard.node
+				x.setText(0, self.wizard.node.name)
+				x.setIcon(0, icon)
+				parent.addChild(x)
+
 
 	#delete selected XML or YAML item from widget
 	def delete_item(self):
 		curr = self.curr_entry
 		parent = curr.parent()
+
+		
+		matches = self.get_repeated(curr)
+
 
 		#deleting launch tag creates invalid launch XML
 		if hasattr(curr.instance.obj, "tag"):
@@ -282,6 +299,12 @@ class EditorWidget(LaunchtreeWidget):
 		if parent is not None:
 			parent.removeChild(curr)
 			self.editor_tree.delete_item(curr.instance, parent.instance)
+
+			if matches != []:
+				for x in matches:
+					x_parent = x.parent()
+					x_parent.removeChild(x)
+					del x
 		else:
 			self.editor_tree.delete_item(curr.instance, None)
 		del curr
@@ -300,3 +323,22 @@ class EditorWidget(LaunchtreeWidget):
 		self.config_wizard.show()
 		
 		#filename = QFileDialog.getSaveFileName(self)
+
+
+	#returns a list of widgets that map to same EditorNode object
+	def get_repeated(self, widg):
+		txt = widg.text(0)
+		matches = self.launch_view.findItems(txt, Qt.MatchExactly | Qt.MatchRecursive, 0)
+		if matches == []:
+			return []
+		else:
+			return_lst = []
+			for i in matches:
+				if i is widg:
+					continue
+				elif i.instance.obj is widg.instance.obj:
+					return_lst.append(i)
+			return return_lst
+
+
+

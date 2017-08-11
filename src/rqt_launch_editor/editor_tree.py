@@ -108,7 +108,6 @@ class EditorTree:
 				subst_val = resolve_arg(path)
 				if os.path.isfile(subst_val):
 					if self.in_map(subst_val):
-						print "xml repetition" + str(subst_val)
 						node.add_child(self.file_node_map[subst_val])
 
 					else:
@@ -267,7 +266,7 @@ class EditorTree:
 			self.file_map[mapper] = yaml_dict
 		else:
 			if self.in_map(yaml_text):
-				print "yaml repetition"
+				return [self.file_node_map[yaml_text]]
 
 			mapper = EditableFile(yaml_text, True)
 			self.file_map[mapper] = yaml_dict
